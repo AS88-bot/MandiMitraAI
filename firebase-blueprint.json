@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Farmer profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "preferredLanguage": { "type": "string", "enum": ["English", "Telugu", "Hindi"] },
+        "location": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "displayName", "createdAt"]
+    },
+    "UploadResult": {
+      "title": "Upload Result",
+      "description": "Saved results from image analysis (fertilizers, pesticides)",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "extractedText": { "type": "string" },
+        "summary": { "type": "string" },
+        "translation": { "type": "string" },
+        "language": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "extractedText", "createdAt"]
+    },
+    "FarmerQuery": {
+      "title": "Farmer Query",
+      "description": "History of voice or text queries sent to the assistant",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "query": { "type": "string" },
+        "response": { "type": "string" },
+        "type": { "type": "string", "enum": ["text", "voice"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "query", "response", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/upload_results/{resultId}": {
+      "schema": "UploadResult",
+      "description": "History of pesticide/fertilizer label scans"
+    },
+    "/farmer_queries/{queryId}": {
+      "schema": "FarmerQuery",
+      "description": "History of assistant interactions"
+    }
+  }
+}

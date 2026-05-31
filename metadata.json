@@ -1,0 +1,11 @@
+{
+  "name": "MandiMitra AI",
+  "description": "An AI agricultural assistant for Indian farmers providing label translation, market prices, and government schemes.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

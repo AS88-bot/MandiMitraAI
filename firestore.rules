@@ -1,0 +1,86 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 3. Globals & Primitives
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 4. Entity Validations
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'displayName', 'createdAt']) &&
+             data.keys().size() <= 7 &&
+             data.uid == request.auth.uid &&
+             data.displayName is string && data.displayName.size() <= 100 &&
+             data.createdAt == request.time &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 100)) &&
+             (!('preferredLanguage' in data) || (data.preferredLanguage in ['English', 'Telugu', 'Hindi'])) &&
+             (!('location' in data) || (data.location is string && data.location.size() <= 200));
+    }
+
+    function isValidUploadResult(data) {
+      return data.keys().hasAll(['userId', 'extractedText', 'createdAt']) &&
+             data.keys().size() <= 7 &&
+             data.userId == request.auth.uid &&
+             data.extractedText is string && data.extractedText.size() <= 5000 &&
+             data.createdAt == request.time &&
+             (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 2000)) &&
+             (!('summary' in data) || (data.summary is string && data.summary.size() <= 2000)) &&
+             (!('translation' in data) || (data.translation is string && data.translation.size() <= 5000));
+    }
+
+    function isValidQuery(data) {
+      return data.keys().hasAll(['userId', 'query', 'response', 'createdAt']) &&
+             data.keys().size() <= 6 &&
+             data.userId == request.auth.uid &&
+             data.query is string && data.query.size() <= 2000 &&
+             data.response is string && data.response.size() <= 5000 &&
+             data.createdAt == request.time &&
+             (!('type' in data) || (data.type in ['text', 'voice']));
+    }
+
+    // 5. Match Blocks
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) && 
+                    incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'preferredLanguage', 'location']);
+    }
+
+    match /upload_results/{resultId} {
+      allow get: if isOwner(existing().userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidUploadResult(incoming());
+      allow delete: if isOwner(existing().userId);
+    }
+
+    match /farmer_queries/{queryId} {
+      allow get: if isOwner(existing().userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidQuery(incoming());
+      allow delete: if isOwner(existing().userId);
+    }
+  }
+}
