@@ -16,6 +16,9 @@ Indian farmers often struggle with:
 - **Simplified Schemes**: A curated list of government benefits (PM-Kisan, Fasal Bima) simplified for the common farmer.
 - **Firebase Persistence**: Your scan history and assistant conversations are saved securely for future reference.
 
+## Demo
+https://mandimitra-ai-721769240731.us-west1.run.app/
+
 ## 🛠️ Tech Stack
 - **Frontend**: React 19, Tailwind CSS, Framer Motion
 - **Backend**: Node.js (Express), Gemini AI SDK (@google/genai)
